@@ -70,6 +70,10 @@ func GoupCurrentBinDir() string {
 	return GoupDir("current", "bin")
 }
 
+func GoupCurrentGopathDir() string {
+	return GoupDir("current", "gopath")
+}
+
 func goupVersionDir(ver string) string {
 	return GoupDir(ver)
 }

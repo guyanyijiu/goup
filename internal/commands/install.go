@@ -219,6 +219,9 @@ func install(version string) error {
 	if err := unpackArchive(targetDir, archiveFile); err != nil {
 		return fmt.Errorf("extracting archive %v: %v", archiveFile, err)
 	}
+	if err := makeGopath(targetDir); err != nil {
+		return err
+	}
 	if err := os.WriteFile(filepath.Join(targetDir, unpackedOkay), nil, 0644); err != nil {
 		return err
 	}
@@ -643,4 +646,14 @@ func (uat userAgentTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	}
 	r.Header.Set("User-Agent", "goup/"+version)
 	return uat.rt.RoundTrip(r)
+}
+
+func makeGopath(targetDir string) error {
+	gopath := filepath.Join(targetDir, "gopath")
+	_, err := os.Stat(gopath)
+	if err != nil && os.IsNotExist(err) {
+		err = os.MkdirAll(gopath, 0755)
+	}
+
+	return err
 }

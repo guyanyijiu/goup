@@ -12,7 +12,10 @@ import (
 )
 
 const (
-	GoupEnvFileContent       = `export PATH="$HOME/.go/bin:$HOME/.go/current/bin:$PATH"`
+	GoupEnvFileContent = `export GOMODCACHE="$HOME/.go/pkg/mod"
+export GOPATH="$HOME/.go/current/gopath"
+export PATH="$HOME/.go/bin:$HOME/.go/current/bin:$GOPATH/bin:$PATH"
+`
 	ProfileFileSourceContent = `source "$HOME/.go/env"`
 
 	welcomeTmpl = `Welcome to Goup!
@@ -28,6 +31,10 @@ The Goup command will be located at:
 The go, gofmt and other Go commands will be located at:
 
   {{ .CurrentGoBinDir }}
+
+The GOPATH will be located at:
+
+ {{ .CurrentGopathDir }}
 
 To get started you need Goup's bin directory ({{ .GoupBinDir }}) and
 Go's bin directory ({{ .CurrentGoBinDir }}) in your PATH environment
@@ -68,15 +75,17 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	params := struct {
-		GoupDir         string
-		GoupBinDir      string
-		CurrentGoBinDir string
-		ProfileFiles    []string
+		GoupDir          string
+		GoupBinDir       string
+		CurrentGoBinDir  string
+		CurrentGopathDir string
+		ProfileFiles     []string
 	}{
-		GoupDir:         GoupDir(),
-		GoupBinDir:      GoupBinDir(),
-		CurrentGoBinDir: GoupCurrentBinDir(),
-		ProfileFiles:    ProfileFiles,
+		GoupDir:          GoupDir(),
+		GoupBinDir:       GoupBinDir(),
+		CurrentGoBinDir:  GoupCurrentBinDir(),
+		CurrentGopathDir: GoupCurrentGopathDir(),
+		ProfileFiles:     ProfileFiles,
 	}
 	if err := tmpl.Execute(os.Stdout, params); err != nil {
 		return err
@@ -106,6 +115,10 @@ func runInit(cmd *cobra.Command, args []string) error {
 	os.Remove(ef)
 
 	if err := os.WriteFile(ef, []byte(GoupEnvFileContent), 0664); err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(GoupDir("pkg/mod"), 0755); err != nil {
 		return err
 	}
 
